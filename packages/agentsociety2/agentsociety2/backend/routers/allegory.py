@@ -71,6 +71,19 @@ def _town_kwargs_from_checkpoint(run_path: Path) -> dict[str, Any] | None:
     return town_kwargs if isinstance(town_kwargs, dict) else None
 
 
+def _branch_metadata(run_path: Path) -> dict[str, Any]:
+    """Read optional run or branch metadata without making it mandatory."""
+
+    candidates = [
+        resolve_under_root(run_path, "run_manifest.json"),
+        resolve_under_root(run_path.parent, "branch_manifest.json"),
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return _read_json(candidate)
+    return {}
+
+
 def _build_observer_payload(run_path: Path) -> dict[str, Any]:
     """Build a snapshot from the live environment workspace.
 
@@ -90,6 +103,11 @@ def _build_observer_payload(run_path: Path) -> dict[str, Any]:
         )
 
     state = _read_json(state_path)
+    manifest = _branch_metadata(run_path)
+    branch = manifest.get("branch") or {}
+    if not isinstance(branch, dict):
+        branch = {}
+
     static_agents = town_kwargs.get("agents") or []
     dynamic_agents = state.get("agents") or {}
     agents: list[dict[str, Any]] = []
@@ -125,9 +143,14 @@ def _build_observer_payload(run_path: Path) -> dict[str, Any]:
         "schema_version": 1,
         "scenario_id": state.get(
             "scenario_id",
-            "allegory_micro_society_v0_1",
+            manifest.get("scenario_id", "allegory_micro_society_v0_1"),
         ),
-        "branch_id": state.get("branch_id", "default"),
+        "branch_id": state.get(
+            "branch_id",
+            branch.get("branch_id", "default"),
+        ),
+        "branch_label": branch.get("label"),
+        "replicate": manifest.get("replicate"),
         "locations": town_kwargs.get("locations") or [],
         "products": town_kwargs.get("products") or [],
         "agents": agents,
