@@ -17,6 +17,7 @@ import ProfileList from './pages/AgentProfile'
 import AgentTemplate from './pages/AgentTemplate/AgentTemplateList'
 import Home from './pages/Home'
 import AllegoryTown from './pages/AllegoryTown'
+import AllegoryLive from './pages/AllegoryLive'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
 import Callback from './pages/Callback'
@@ -121,6 +122,14 @@ const router = createBrowserRouter([
         element: (
             authProvider(
                 <RootLayout selectedKey='/allegory-town'><AllegoryTown /></RootLayout>
+            )
+        ),
+    },
+    {
+        path: "/allegory-live",
+        element: (
+            authProvider(
+                <RootLayout selectedKey='/allegory-live'><AllegoryLive /></RootLayout>
             )
         ),
     },
