@@ -16,6 +16,7 @@ import CreateExperiment from './pages/Experiment/CreateExperiment'
 import ProfileList from './pages/AgentProfile'
 import AgentTemplate from './pages/AgentTemplate/AgentTemplateList'
 import Home from './pages/Home'
+import AllegoryTown from './pages/AllegoryTown'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
 import Callback from './pages/Callback'
@@ -112,6 +113,14 @@ const router = createBrowserRouter([
         element: (
             authProvider(
                 <RootLayout selectedKey='/maps'><Map /></RootLayout>
+            )
+        ),
+    },
+    {
+        path: "/allegory-town",
+        element: (
+            authProvider(
+                <RootLayout selectedKey='/allegory-town'><AllegoryTown /></RootLayout>
             )
         ),
     },
