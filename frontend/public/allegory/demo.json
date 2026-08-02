@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "scenario_id": "allegory_micro_society_v0_1_demo",
+  "locations": [
+    {"id":"home_1","name":"Willow House","kind":"home","x":12,"y":18,"neighbors":["west_walk"]},
+    {"id":"home_2","name":"Juniper House","kind":"home","x":12,"y":72,"neighbors":["west_walk"]},
+    {"id":"home_3","name":"Cedar House","kind":"home","x":88,"y":18,"neighbors":["east_walk"]},
+    {"id":"home_4","name":"Maple House","kind":"home","x":88,"y":72,"neighbors":["east_walk"]},
+    {"id":"west_walk","name":"West Walk","kind":"street","x":28,"y":45,"neighbors":["home_1","home_2","town_square"]},
+    {"id":"town_square","name":"Town Square","kind":"street","x":50,"y":45,"neighbors":["west_walk","east_walk","office","shop","park","cafe"]},
+    {"id":"east_walk","name":"East Walk","kind":"street","x":72,"y":45,"neighbors":["home_3","home_4","town_square"]},
+    {"id":"office","name":"Northstar Office","kind":"workplace","x":50,"y":12,"neighbors":["town_square"]},
+    {"id":"shop","name":"Common Goods","kind":"shop","x":68,"y":74,"neighbors":["town_square"]},
+    {"id":"park","name":"Pocket Park","kind":"park","x":34,"y":76,"neighbors":["town_square"]},
+    {"id":"cafe","name":"Corner Cafe","kind":"cafe","x":50,"y":74,"neighbors":["town_square"]}
+  ],
+  "products": [
+    {"id":"pulse_mini","name":"Pulse Mini Speaker","category":"audio","price":49,"store_id":"shop"}
+  ],
+  "agents": [
+    {"id":1,"name":"Sara Malik","home_id":"home_1","work_id":"office","location_id":"home_1","activity":"idle","budget":185,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":2,"name":"Omar Malik","home_id":"home_1","work_id":"office","location_id":"home_1","activity":"idle","budget":145,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":3,"name":"Maya Chen","home_id":"home_2","work_id":"office","location_id":"home_2","activity":"idle","budget":210,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":4,"name":"Leo Chen","home_id":"home_2","work_id":"cafe","location_id":"home_2","activity":"idle","budget":95,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":5,"name":"Priya Shah","home_id":"home_3","work_id":"office","location_id":"home_3","activity":"idle","budget":260,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":6,"name":"Ravi Shah","home_id":"home_3","work_id":"office","location_id":"home_3","activity":"idle","budget":170,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":7,"name":"Elena Garcia","home_id":"home_4","work_id":"cafe","location_id":"home_4","activity":"idle","budget":130,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":8,"name":"Mateo Garcia","home_id":"home_4","work_id":"office","location_id":"home_4","activity":"idle","budget":225,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":9,"name":"Noah Williams","home_id":"home_2","work_id":"shop","location_id":"home_2","activity":"idle","budget":80,"awareness":{},"consideration":{},"purchased":[]},
+    {"id":10,"name":"Aisha Brooks","home_id":"home_4","work_id":"park","location_id":"home_4","activity":"idle","budget":155,"awareness":{},"consideration":{},"purchased":[]}
+  ],
+  "events": [
+    {"sequence":1,"event_type":"simulation_started","simulation_time":"2026-08-03T08:00:00","actor_id":null,"target_id":null,"location_id":null,"payload":{"agent_count":10,"location_count":11,"product_count":1}},
+    {"sequence":2,"event_type":"movement_started","simulation_time":"2026-08-03T08:30:00","actor_id":1,"target_id":null,"location_id":"home_1","payload":{"origin_id":"home_1","destination_id":"office","path":["home_1","west_walk","town_square","office"],"duration_minutes":15}},
+    {"sequence":3,"event_type":"movement_completed","simulation_time":"2026-08-03T08:30:00","actor_id":1,"target_id":null,"location_id":"office","payload":{"origin_id":"home_1","destination_id":"office","path":["home_1","west_walk","town_square","office"],"duration_minutes":15}},
+    {"sequence":4,"event_type":"movement_completed","simulation_time":"2026-08-03T08:30:00","actor_id":3,"target_id":null,"location_id":"office","payload":{"origin_id":"home_2","destination_id":"office","path":["home_2","west_walk","town_square","office"],"duration_minutes":15}},
+    {"sequence":5,"event_type":"movement_completed","simulation_time":"2026-08-03T08:30:00","actor_id":5,"target_id":null,"location_id":"office","payload":{"origin_id":"home_3","destination_id":"office","path":["home_3","east_walk","town_square","office"],"duration_minutes":15}},
+    {"sequence":6,"event_type":"movement_completed","simulation_time":"2026-08-03T09:00:00","actor_id":4,"target_id":null,"location_id":"cafe","payload":{"origin_id":"home_2","destination_id":"cafe","path":["home_2","west_walk","town_square","cafe"],"duration_minutes":15}},
+    {"sequence":7,"event_type":"movement_completed","simulation_time":"2026-08-03T09:00:00","actor_id":7,"target_id":null,"location_id":"cafe","payload":{"origin_id":"home_4","destination_id":"cafe","path":["home_4","east_walk","town_square","cafe"],"duration_minutes":15}},
+    {"sequence":8,"event_type":"movement_completed","simulation_time":"2026-08-03T09:00:00","actor_id":9,"target_id":null,"location_id":"shop","payload":{"origin_id":"home_2","destination_id":"shop","path":["home_2","west_walk","town_square","shop"],"duration_minutes":15}},
+    {"sequence":9,"event_type":"product_exposed","simulation_time":"2026-08-03T10:00:00","actor_id":3,"target_id":null,"location_id":"office","payload":{"product_id":"pulse_mini","source":"advertisement","awareness_before":0,"awareness_after":0.75}},
+    {"sequence":10,"event_type":"conversation","simulation_time":"2026-08-03T10:30:00","actor_id":3,"target_id":1,"location_id":"office","payload":{"topic":"pulse_mini","product_id":"pulse_mini","content":"That little speaker might be useful for our project room.","awareness_transferred":0.56}},
+    {"sequence":11,"event_type":"conversation","simulation_time":"2026-08-03T12:00:00","actor_id":1,"target_id":5,"location_id":"office","payload":{"topic":"pulse_mini","product_id":"pulse_mini","content":"Maya mentioned the new Pulse Mini speaker.","awareness_transferred":0.43}},
+    {"sequence":12,"event_type":"movement_started","simulation_time":"2026-08-03T17:00:00","actor_id":1,"target_id":null,"location_id":"office","payload":{"origin_id":"office","destination_id":"shop","path":["office","town_square","shop"],"duration_minutes":10}},
+    {"sequence":13,"event_type":"movement_completed","simulation_time":"2026-08-03T17:00:00","actor_id":1,"target_id":null,"location_id":"shop","payload":{"origin_id":"office","destination_id":"shop","path":["office","town_square","shop"],"duration_minutes":10}},
+    {"sequence":14,"event_type":"product_considered","simulation_time":"2026-08-03T17:10:00","actor_id":1,"target_id":null,"location_id":"shop","payload":{"product_id":"pulse_mini","score":0.79,"recommendation":"strong_interest"}},
+    {"sequence":15,"event_type":"product_purchased","simulation_time":"2026-08-03T17:15:00","actor_id":1,"target_id":null,"location_id":"shop","payload":{"product_id":"pulse_mini","price":49,"reason":"purchased","remaining_budget":136}},
+    {"sequence":16,"event_type":"product_exposed","simulation_time":"2026-08-03T17:30:00","actor_id":9,"target_id":null,"location_id":"shop","payload":{"product_id":"pulse_mini","source":"in_store_display","awareness_before":0,"awareness_after":0.55}},
+    {"sequence":17,"event_type":"product_considered","simulation_time":"2026-08-03T17:35:00","actor_id":9,"target_id":null,"location_id":"shop","payload":{"product_id":"pulse_mini","score":0.39,"recommendation":"unlikely"}},
+    {"sequence":18,"event_type":"purchase_rejected","simulation_time":"2026-08-03T17:36:00","actor_id":9,"target_id":null,"location_id":"shop","payload":{"product_id":"pulse_mini","price":49,"reason":"interest_below_purchase_threshold","remaining_budget":80}}
+  ],
+  "last_sequence": 18,
+  "simulation_steps": 16
+}
