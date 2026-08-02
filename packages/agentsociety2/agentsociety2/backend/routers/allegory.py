@@ -176,6 +176,19 @@ def _events_after(
     ][:safe_limit]
 
 
+def _resume_cursor(request: Request, after_sequence: int) -> int:
+    """Resume from the greater query cursor or EventSource Last-Event-ID."""
+
+    raw = request.headers.get("last-event-id", "").strip()
+    if not raw:
+        return after_sequence
+    try:
+        header_cursor = max(0, int(raw))
+    except ValueError:
+        return after_sequence
+    return max(after_sequence, header_cursor)
+
+
 def _sse(event: str, data: Any, *, event_id: int | None = None) -> str:
     encoded = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     lines = []
@@ -233,17 +246,19 @@ async def observer_stream(
     run_dir: str = Query(...),
     after_sequence: int = Query(0, ge=0),
     poll_interval: float = Query(0.75, ge=0.25, le=10.0),
+    event_interval: float = Query(0.2, ge=0.0, le=2.0),
 ) -> StreamingResponse:
     """Stream persisted Allegory events with Server-Sent Events.
 
-    The stream is cursor-based and safe to reconnect using ``after_sequence``.
-    A metadata snapshot is sent first, followed by ``town_event`` messages.
+    The stream resumes from ``Last-Event-ID`` on automatic EventSource
+    reconnects. Events are lightly paced so movement and social actions remain
+    visible instead of collapsing into one browser render frame.
     """
 
     run_path = _resolve_run_dir(workspace_path, run_dir)
 
     async def generate() -> AsyncIterator[str]:
-        cursor = after_sequence
+        cursor = _resume_cursor(request, after_sequence)
         heartbeat_polls = 0
         snapshot_sent = False
         while True:
@@ -261,6 +276,8 @@ async def observer_stream(
                 for event in events:
                     cursor = int(event.get("sequence", cursor))
                     yield _sse("town_event", event, event_id=cursor)
+                    if event_interval > 0:
+                        await asyncio.sleep(event_interval)
 
                 heartbeat_polls += 1
                 if events:
