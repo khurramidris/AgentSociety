@@ -18,6 +18,16 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
+def _state_path(run_dir: Path) -> Path:
+    return (
+        run_dir
+        / "env"
+        / "AllegoryTownSpace"
+        / "state"
+        / "ALLEGORY_TOWN_STATE.json"
+    )
+
+
 def _build_live_run(root: Path) -> Path:
     run_dir = root / "runs" / "demo"
     _write_json(
@@ -67,11 +77,7 @@ def _build_live_run(root: Path) -> Path:
         },
     )
     _write_json(
-        run_dir
-        / "env"
-        / "AllegoryTownSpace"
-        / "state"
-        / "ALLEGORY_TOWN_STATE.json",
+        _state_path(run_dir),
         {
             "scenario_id": "demo",
             "branch_id": "price_49",
@@ -113,7 +119,9 @@ def _build_live_run(root: Path) -> Path:
     return run_dir
 
 
-def test_build_observer_payload_merges_static_and_dynamic_state(tmp_path: Path) -> None:
+def test_build_observer_payload_merges_static_and_dynamic_state(
+    tmp_path: Path,
+) -> None:
     run_dir = _build_live_run(tmp_path)
 
     payload = _build_observer_payload(run_dir)
@@ -136,6 +144,32 @@ def test_build_observer_payload_merges_static_and_dynamic_state(tmp_path: Path) 
             "purchased": ["pulse_mini"],
         }
     ]
+
+
+def test_branch_manifest_supplies_observer_identity(tmp_path: Path) -> None:
+    run_dir = _build_live_run(tmp_path)
+    state = json.loads(_state_path(run_dir).read_text(encoding="utf-8"))
+    state.pop("scenario_id")
+    state.pop("branch_id")
+    _write_json(_state_path(run_dir), state)
+    _write_json(
+        run_dir.parent / "branch_manifest.json",
+        {
+            "scenario_id": "launch_test",
+            "replicate": 3,
+            "branch": {
+                "branch_id": "campaign_price_69",
+                "label": "Campaign at $69",
+            },
+        },
+    )
+
+    payload = _build_observer_payload(run_dir)
+
+    assert payload["scenario_id"] == "launch_test"
+    assert payload["branch_id"] == "campaign_price_69"
+    assert payload["branch_label"] == "Campaign at $69"
+    assert payload["replicate"] == 3
 
 
 def test_events_after_is_cursor_based_and_limited(tmp_path: Path) -> None:
