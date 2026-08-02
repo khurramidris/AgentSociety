@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import Account from "./components/Account";
 import { useTranslation } from 'react-i18next';
 import { WITH_AUTH } from "./components/fetch";
-// import Account from "./components/Account";
 
 const RootMenu = ({ selectedKey, style }: {
     selectedKey: string,
@@ -35,7 +34,30 @@ const RootMenu = ({ selectedKey, style }: {
         },
     ];
 
+    const allegoryItems: MenuProps['items'] = [
+        {
+            key: '/allegory-live',
+            label: <Link to="/allegory-live">Live society</Link>,
+            icon: <ApiOutlined />,
+        },
+        {
+            key: '/allegory-town',
+            label: <Link to="/allegory-town">Fixture replay</Link>,
+            icon: <RocketOutlined />,
+        },
+    ];
+
     const menuItems: MenuProps['items'] = [
+        {
+            key: selectedKey.startsWith('/allegory') ? selectedKey : '/allegory-live',
+            label: (
+                <Dropdown menu={{ items: allegoryItems }} placement="bottomLeft" arrow>
+                    <div>
+                        <Link to="/allegory-live"><Space><RocketOutlined />Allegory</Space></Link>
+                    </div>
+                </Dropdown>
+            ),
+        },
         {
             key: '/llms',
             label: <Link to="/llms">{t('menu.llmConfigs')}</Link>,

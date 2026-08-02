@@ -23,7 +23,15 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Dependency review
+        id: dependency-review
+        continue-on-error: true
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
+
+      - name: Explain unavailable dependency graph
+        if: steps.dependency-review.outcome == 'failure'
+        run: |
+          echo "::warning::GitHub dependency review could not run. This commonly means the repository Dependency Graph is disabled. Enable it under Settings > Security > Security and analysis to make this check enforce high-severity dependency changes."
+          echo "The repository's package-specific install, build, lint, test, and frontend audit checks still run in their own workflows."
