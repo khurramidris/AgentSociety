@@ -1083,8 +1083,14 @@ export class ConfigPageViewProvider {
       return;
     }
     try {
+      const routeCodexBefore = manager.getPublicStatus().routeCodex;
       const provider = await manager.upsertImportedGatewayProvider(draft);
       this._pendingImportedGateway = undefined;
+      if (!routeCodexBefore && manager.getPublicStatus().routeCodex) {
+        // Default-on just fired during the import: a running `codex` process
+        // still uses the old config until restarted (same hint as provider save).
+        await this._offerCodexRestart(localize('aiCliGateway.codexRestartNeeded'));
+      }
       await this._postProvidersAndActiveConfig();
       await this._postGatewayStatus();
       this._panel.webview.postMessage({
