@@ -681,3 +681,24 @@ export function isCodexConfiguredByUser(): boolean {
   }
   return false;
 }
+
+/**
+ * Single decision point for defaulting the Codex gateway route on: only when the
+ * user never made an explicit choice (state key undefined), has no own Codex
+ * setup (no user-authored provider config, no official OAuth login, no API-key
+ * auth.json), and there is an eligible provider to route. Any explicit toggle or
+ * a value persisted by an older build wins — this probe never overrides it.
+ */
+export function shouldEnableCodexRouteByDefault(state: {
+  explicitlySet: boolean;
+  userConfigured: boolean;
+  officialLoginPresent: boolean;
+  hasEligibleProvider: boolean;
+}): boolean {
+  return (
+    !state.explicitlySet &&
+    !state.userConfigured &&
+    !state.officialLoginPresent &&
+    state.hasEligibleProvider
+  );
+}

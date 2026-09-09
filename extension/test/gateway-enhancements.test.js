@@ -1026,3 +1026,23 @@ test('text-only model registry matches cc-switch exact tails and fail-open', () 
   assert.equal(isLikelyTextOnlyModel('minimax-m2.7-vision'), false);
   assert.equal(isLikelyTextOnlyModel('gpt-5.5'), false);
 });
+
+test('codex route default-on probe requires no explicit choice, no user setup, eligible provider', () => {
+  const { shouldEnableCodexRouteByDefault } = require('../out/services/codexSettings');
+  const base = {
+    explicitlySet: false,
+    userConfigured: false,
+    officialLoginPresent: false,
+    hasEligibleProvider: true,
+  };
+  assert.equal(shouldEnableCodexRouteByDefault(base), true);
+
+  // Any explicit choice (user toggle, prior default, or an older build's write) wins.
+  assert.equal(shouldEnableCodexRouteByDefault({ ...base, explicitlySet: true }), false);
+  // User-authored config.toml provider blocks are never overridden.
+  assert.equal(shouldEnableCodexRouteByDefault({ ...base, userConfigured: true }), false);
+  // Official OAuth login and API-key-only auth.json are both user-owned setups.
+  assert.equal(shouldEnableCodexRouteByDefault({ ...base, officialLoginPresent: true }), false);
+  // Without a routable provider there is nothing to default on.
+  assert.equal(shouldEnableCodexRouteByDefault({ ...base, hasEligibleProvider: false }), false);
+});

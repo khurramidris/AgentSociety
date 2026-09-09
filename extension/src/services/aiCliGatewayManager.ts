@@ -51,9 +51,11 @@ import {
   detectCodexOfficialLogin,
   getCodexRoutingSnapshot,
   getCodexOfficialLoginSnapshot,
+  isCodexConfiguredByUser,
   isCodexGatewayTakeoverConfig,
   readCodexConfigText,
   releaseCodexGatewayTakeover,
+  shouldEnableCodexRouteByDefault,
   snapshotCodexLiveBackup,
   stripCodexGatewayConfig,
   type CodexProviderPatch,
@@ -726,7 +728,11 @@ export class AiCliGatewayManager {
       adjusted.push('claude');
     }
     if (this.isRouteCodexViaGateway() && !this.getOpenAiProviderForGateway()) {
-      await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, false);
+      // undefined = "no explicit choice" (key deleted) so the default-on probe in
+      // maybeEnableCodexRouteByDefault can still fire later. A system force-off
+      // must NOT be recorded as a user decision. Claude (:725) keeps writing
+      // false — out of scope for the codex default-on feature.
+      await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, undefined);
       adjusted.push('codex');
     }
     return adjusted;
@@ -736,7 +742,9 @@ export class AiCliGatewayManager {
     const adjusted = await this.syncGatewayRoutesWithProviders();
     const routeClaude = this.isRouteClaudeViaGateway();
     const routeCodex = this.isRouteCodexViaGateway();
-    // Never auto-enable Claude/Codex proxy — user must flip the route switch.
+    // Never auto-enable routes HERE — the Codex default-on probe runs when a
+    // Codex provider is activated (applyActiveCodexProvider), not on Claude-only
+    // enable paths. Users must flip the Claude switch themselves.
     if (!routeClaude && !routeCodex) {
       throw new Error('gateway_no_route_selected');
     }
@@ -889,7 +897,8 @@ export class AiCliGatewayManager {
         await this.projectCodexProviderLive(openaiActive, gatewayStatus.port);
         this.log(`Codex gateway config applied on port ${gatewayStatus.port}`);
       } else {
-        await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, false);
+        // undefined = "no explicit choice" — see syncGatewayRoutesWithProviders.
+        await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, undefined);
         await this.releaseCodexProxyTakeover();
         this.log('Codex gateway route disabled: active provider has no resolvable model');
       }
@@ -1195,12 +1204,44 @@ export class AiCliGatewayManager {
     return this.getPublicStatus();
   }
 
+  /**
+   * One-shot default: route Codex via the local gateway when the user never made
+   * an explicit choice (state key undefined) and has no own Codex setup (no
+   * user-authored provider config, no official OAuth login, no API-key-only
+   * auth.json). An explicit toggle or a value persisted by an older build always
+   * wins. Reads are synchronous up to the final state write — do not add awaits
+   * in between (e.g. detectCodexOfficialLogin).
+   */
+  private async maybeEnableCodexRouteByDefault(provider: AiCliProviderConfig): Promise<boolean> {
+    const explicitlySet =
+      this.context.globalState.get<boolean>(ROUTE_CODEX_STATE_KEY) !== undefined;
+    const fileLogin = getCodexOfficialLoginSnapshot();
+    const shouldEnable = shouldEnableCodexRouteByDefault({
+      explicitlySet,
+      userConfigured: isCodexConfiguredByUser(),
+      officialLoginPresent:
+        fileLogin.present ||
+        fileLogin.storeHint === 'api_key_only' ||
+        this.codexLoginSnapshot.present,
+      hasEligibleProvider:
+        this.providerHasApiUpstream(provider) &&
+        Boolean(this.resolveCodexProviderModel(provider)),
+    });
+    if (!shouldEnable) {
+      return false;
+    }
+    await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, true);
+    this.log('Codex proxy enabled by default (no user-owned Codex config found)');
+    return true;
+  }
+
   private async applyActiveCodexProvider(provider: AiCliProviderConfig): Promise<AiCliGatewayPublicStatus> {
     const normalized = this.normalizeProvider(provider);
     const enabled = this.context.globalState.get<boolean>(ENABLED_STATE_KEY, false);
     if (isOfficialSubscriptionProvider(normalized) && normalized.apiKind === 'openai') {
       if (this.isRouteCodexViaGateway()) {
-        await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, false);
+        // undefined = "no explicit choice" — see syncGatewayRoutesWithProviders.
+        await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, undefined);
       }
       if (getCodexRoutingSnapshot().routedViaGateway || this.codexLiveBackupCache !== undefined) {
         await this.releaseCodexProxyTakeover();
@@ -1212,17 +1253,31 @@ export class AiCliGatewayManager {
       }
       return this.getPublicStatus();
     }
-    // Never auto-flip routeCodex. Direct projection when proxy off; gateway when already on.
+    // Default-on once when the user has no own Codex setup and made no explicit
+    // choice; an explicit toggle always wins. Direct projection when proxy off;
+    // gateway when already on.
+    const autoEnabled = await this.maybeEnableCodexRouteByDefault(normalized);
     if (this.isRouteCodexViaGateway()) {
-      if (!this.gateway.getStatus().running) {
-        const anthropic = this.getAnthropicProviderForGateway();
-        const config = anthropic
-          ? this.providerToClaudeConfig(anthropic)
-          : readClaudeConfig();
-        return this.enableWithClaudeConfig(config);
+      try {
+        if (!this.gateway.getStatus().running) {
+          const anthropic = this.getAnthropicProviderForGateway();
+          const config = anthropic
+            ? this.providerToClaudeConfig(anthropic)
+            : readClaudeConfig();
+          return await this.enableWithClaudeConfig(config);
+        }
+        await this.applyGatewayRoutes();
+        return this.getPublicStatus();
+      } catch (error) {
+        if (!autoEnabled) {
+          throw error;
+        }
+        // An automatic default must not fail the surrounding save/import flow:
+        // revert the premature default and keep Codex on the direct projection.
+        const message = error instanceof Error ? error.message : String(error);
+        this.log(`Codex proxy default-on failed to start the gateway: ${message}`);
+        await this.context.globalState.update(ROUTE_CODEX_STATE_KEY, undefined);
       }
-      await this.applyGatewayRoutes();
-      return this.getPublicStatus();
     }
     if (getCodexRoutingSnapshot().routedViaGateway || this.codexLiveBackupCache !== undefined) {
       await this.releaseCodexProxyTakeover();

@@ -14,7 +14,9 @@ Git 发版标签：`agentsociety2-v{major}.{minor}.{patch}`（见 `CONTRIBUTING.
 
 ## [Unreleased]
 
-<!-- 暂无待发布变更 -->
+### Changed
+
+- **extension**：CLI 网关的「Codex 本地代理」改为默认启用——在 Codex 供应商激活时刻（一键导入、新建/编辑/激活供应商），若用户没有自有 Codex 配置（无自建 provider、无官方 OAuth 登录、auth.json 也非仅 API Key），自动开启路由并启动本地网关；已有配置与登录一律不动，显式开关永远优先。系统级路由回退（供应商失效等）不再记录为用户选择，此后默认探测仍可生效。导入路径默认触发时补充 Codex 重启提示。
 
 ## [2.8.6] - 2026-09-09
 
