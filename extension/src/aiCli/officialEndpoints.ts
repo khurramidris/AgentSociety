@@ -105,5 +105,8 @@ export function claudeSettingsBaseUrl(resolvedAnthropicBaseUrl: string): string 
   if (isOfficialAnthropicBaseUrl(resolvedAnthropicBaseUrl)) {
     return '';
   }
-  return resolvedAnthropicBaseUrl;
+  // Claude Code appends /v1/messages to this base, so a base that already ends
+  // with /v1 (e.g. an OpenAI-style https://host/v1) would hit /v1/v1/messages
+  // and 404 as "model not found". Strip the suffix before writing settings.json.
+  return resolvedAnthropicBaseUrl.trim().replace(/\/v1\/?$/, '');
 }
