@@ -915,7 +915,9 @@ export class AiCliGatewayManager {
     if (upstream.baseUrl && upstream.apiKey) {
       writeClaudeConfig({
         ...config,
-        baseUrl: upstream.baseUrl,
+        // Keep the raw /v1 upstream in storage, but write Claude a base it can
+        // actually append /v1/messages to (see claudeSettingsBaseUrl).
+        baseUrl: claudeSettingsBaseUrl(upstream.baseUrl),
         apiKey: upstream.apiKey,
       });
       await this.persistUpstream(upstream);
