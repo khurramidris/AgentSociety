@@ -16,9 +16,9 @@ Git 发版标签：`agentsociety2-v{major}.{minor}.{patch}`（见 `CONTRIBUTING.
 
 <!-- 暂无待发布变更 -->
 
-## [2.8.5] - 2026-09-09
+## [2.8.6] - 2026-09-09
 
-- **agentsociety2** `2.8.5` · **extension** `1.6.6` · 标签 `agentsociety2-v2.8.5`
+- **agentsociety2** `2.8.6` · **extension** `1.6.6` · 标签 `agentsociety2-v2.8.6`
 
 ### Fixed
 
@@ -27,7 +27,7 @@ Git 发版标签：`agentsociety2-v{major}.{minor}.{patch}`（见 `CONTRIBUTING.
 
 ### Changed
 
-- **CI**：npm audit 告警不再阻断 extension lint job。
+- **CI**：npm audit 告警（传递依赖）不再阻断 extension lint job 与 `agentsociety2-v*` 发版流水线（GitLab 与 GitHub workflow 两侧对齐）。
 
 ## [2.8.3] - 2026-07-20
 

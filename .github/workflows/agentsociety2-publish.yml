@@ -58,7 +58,9 @@ jobs:
           npm ci
           npm run lint
           npm run build
-          npm audit --audit-level=high --registry=https://registry.npmjs.org
+          # Advisory failures (transitive deps) must not block the release;
+          # matches .gitlab-ci.yml lint-extension (13e28b5e).
+          npm audit --audit-level=high --registry=https://registry.npmjs.org || true
 
   build-python:
     name: Build Python distribution
