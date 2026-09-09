@@ -16,6 +16,19 @@ Git 发版标签：`agentsociety2-v{major}.{minor}.{patch}`（见 `CONTRIBUTING.
 
 <!-- 暂无待发布变更 -->
 
+## [2.8.5] - 2026-09-09
+
+- **agentsociety2** `2.8.5` · **extension** `1.6.6` · 标签 `agentsociety2-v2.8.5`
+
+### Fixed
+
+- **extension** `1.6.6`：修复 AgentSociety Web 一键导入后 Claude Code 聊天报「There's an issue with the selected model (glm-5.2)」——直连模式写入 `~/.claude/settings.json` 的 `ANTHROPIC_BASE_URL` 带有 `/v1` 后缀，Claude Code 追加路径后实际请求 `/v1/v1/messages`（404）；现在写回退直连前统一剥离末尾 `/v1`，Codex 与网关链路不受影响。
+- **extension** `1.6.5`：Codex 一键导入改用独立推荐模型并增加对已有 Codex / Claude Code 配置的覆盖保护。
+
+### Changed
+
+- **CI**：npm audit 告警不再阻断 extension lint job。
+
 ## [2.8.3] - 2026-07-20
 
 - **agentsociety2** `2.8.3` · **extension** `1.6.5` · 标签 `agentsociety2-v2.8.3`
